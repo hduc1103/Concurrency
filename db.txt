@@ -1,0 +1,14 @@
+CREATE DATABASE Concurrency;
+USE Concurrency;
+
+DROP TABLE crawled_data;
+
+SELECT * FROM crawled_data;
+CREATE TABLE crawled_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    url VARCHAR(255) UNIQUE,         
+    product_name VARCHAR(255),       
+    type VARCHAR(50),                
+    price VARCHAR(50),              
+    crawled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+);
