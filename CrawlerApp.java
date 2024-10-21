@@ -4,13 +4,16 @@ import java.util.concurrent.*;
 public class CrawlerApp {
 
     public static void main(String[] args) throws Exception {
-        BlockingQueue<String> urlQueue = new LinkedBlockingQueue<>();
-        Set<String> visitedUrls = ConcurrentHashMap.newKeySet();
         DataBaseService dbService = new DataBaseService();
-        urlQueue.put("https://cellphones.com.vn/iphone-14-pro-max.html");
-        urlQueue.put("https://cellphones.com.vn/tecno-spark-20.html");
+
+        dbService.getLinks();
+
+        BlockingQueue<String> urlQueue = dbService.getUrlQueue();
+
+        Set<String> visitedUrls = ConcurrentHashMap.newKeySet();
 
         long startTime = System.currentTimeMillis();
+        System.out.println("Start time: " + startTime);
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
@@ -29,7 +32,8 @@ public class CrawlerApp {
                 Thread.currentThread().interrupt();
             } finally {
                 long endTime = System.currentTimeMillis();
-                System.out.println("Time taken for crawling: " + (endTime - startTime)/1000/60 + " minutes.");
+                System.out.println("End time: " + endTime);
+                System.out.println("Time taken for crawling: " + (endTime - startTime) / 1000 + " seconds.");
             }
         }
     }

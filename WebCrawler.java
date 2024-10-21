@@ -21,36 +21,46 @@ public class WebCrawler implements Runnable {
 
     @Override
     public void run() {
-        while (!urlQueue.isEmpty()) {
-            String url = urlQueue.poll();
-            if (url == null || visitedUrls.contains(url)) continue;
+        try {
+            while (true) {
+                String url = urlQueue.take();
+                System.out.println("Processing URL: " + url);
 
-            try {
-                Document doc = Jsoup.connect(url).get();
-                System.out.println(doc.title());
-                String product_name = doc.select("div.box-product-name h1").first().text();
-                String type = doc.select("strong.item-variant-name").first().text();
-                String price = doc.select("span.item-variant-price").first().text();
+                if (visitedUrls.contains(url)) continue;
 
-                System.out.println(product_name + type + price);
-                dbService.saveProductData(url,product_name,price);
+                try {
+                    Document doc = Jsoup.connect(url).get();
 
-                visitedUrls.add(url);
-                Elements links = doc.select("a[href]");
-                for (Element link : links) {
-                    String nextUrl = link.absUrl("href");
-                    if (!visitedUrls.contains(nextUrl)) {
-                        urlQueue.put(nextUrl);
+                    String product_name = doc.select("div.box-product-name h1").first().text();
+                    String price = doc.select("span.item-variant-price").first() != null
+                            ? doc.select("span.item-variant-price").first().text()
+                            : doc.select("span.data-v-97d76036").first().text();
+
+                    String product_type = doc.select("strong.item-variant-name").first().text();
+
+                    System.out.println(product_name + " " + product_type + " " + price);
+
+                    dbService.saveProductData(url, product_name, product_type, price);
+
+                    visitedUrls.add(url);
+
+                    Elements links = doc.select("a[href]");
+                    for (Element link : links) {
+                        String nextUrl = link.absUrl("href");
+
+                        if (!visitedUrls.contains(nextUrl) && !nextUrl.isEmpty()) {
+                            urlQueue.put(nextUrl);
+                        }
                     }
+                } catch (IOException e) {
+                    System.err.println("Error crawling " + url + ": " + e.getMessage());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
-            } catch (IOException e) {
-                System.err.println("Error crawling " + url + ": " + e.getMessage());
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.err.println("Thread interrupted while processing URL: " + url);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Thread interrupted.");
         }
     }
 }
