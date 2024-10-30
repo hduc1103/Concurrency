@@ -34,11 +34,8 @@ public class DataBaseService {
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             ResultSet resultSet = stmt.executeQuery();
 
-            // Process the result set and add URLs to the BlockingQueue
             while (resultSet.next()) {
                 String url = resultSet.getString("url");
-
-                // Add the URL to the queue
                 urlQueue.add(url);
             }
         }

@@ -36,35 +36,27 @@ public class MainPageCrawler {
         long lastHeight = (long) js.executeScript("return document.body.scrollHeight");
 
         while (true) {
-            // Scroll down the page
             js.executeScript("window.scrollBy(0, 500);");
 
-            // Look for the "Xem thêm" button and click if it is present
             try {
                 WebElement showMoreButton = driver.findElement(By.cssSelector("a.button btn-show-more button__show-more-product"));
                 if (showMoreButton.isDisplayed()) {
                     showMoreButton.click();
-                    // Wait for the page to load after clicking
                     TimeUnit.SECONDS.sleep(5);
                 }
             } catch (Exception e) {
-                // Button not found or not clickable; proceed with scrolling
             }
 
-            // Wait for the page to load more content
             Thread.sleep(10000);
 
-            // Get the new height after scrolling
             long newHeight = (long) js.executeScript("return document.body.scrollHeight");
 
-            // Check if the page has finished loading (no more new content)
             if (newHeight == lastHeight) {
                 break;
             }
             lastHeight = newHeight;
         }
 
-        // Get the page source and parse it with Jsoup
         String pageSource = driver.getPageSource();
         Document doc = Jsoup.parse(pageSource);
         Elements links = doc.select("div.product-info a");
@@ -75,7 +67,6 @@ public class MainPageCrawler {
             dataBaseService.saveLink(productLink);
         }
 
-        // Quit the driver after completion
         driver.quit();
         return null;
     }
